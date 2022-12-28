@@ -1,0 +1,3 @@
+/home/hadi/Desktop/C++/FinalProjectXO/cmake-build-debug/CMakeFiles/FinalProjectXO.dir
+/home/hadi/Desktop/C++/FinalProjectXO/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/hadi/Desktop/C++/FinalProjectXO/cmake-build-debug/CMakeFiles/rebuild_cache.dir
