@@ -5,17 +5,34 @@ using namespace std;
 char turn = 'B'; // B or R
 string chosenbead;
 int x, y;
+string map[3][3][3];
+string beads[2][6] = {{"1B1", "1B2", "2B1", "2B2", "3B1", "3B2"},
+                      {"1R1", "1R2", "2R1", "2R2", "3R1", "3R2"}};
 
 
-void printMap(string map[3][3][3]){
+int get_turnnum(char turn){
+    if (turn == 'B')
+        return 0;
+    else return 1;
+}
+
+
+void printMap(){
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 3; k++){
+
+                if (map[i][j][2] != "") {
+                    cout << map[i][j][2] << " ";
+                    break;
+                }
+
                 if (map[i][j][k] == ""){
                     if (k == 0)
-                        cout << "   ";
+                        cout << "    ";
                     else
                         cout << map[i][j][k-1] << " ";
+                    break;
                 }
             }
         }
@@ -25,14 +42,74 @@ void printMap(string map[3][3][3]){
 
 
 char checkWin(){ // B or R or E:equal or N:none
-// todo
+
+    // todo: Equal
+
+    int e[3][3];
+
+    for (int i = 0; i < 3; i++){
+        for (int j = 0; j < 3; j++){
+            for (int k = 0; k < 3; k++){
+                if (map[i][j][k] == "") {
+                    e[i][j] = k - 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < 3; i++){
+        for (int j = 0; j < 3; j++){
+            // row
+            if (e[i][0] != -1 &&
+                e[i][1] != -1 &&
+                e[i][2] != -1 &&
+                map[i][0][e[i][0]][1] == map[i][1][e[i][1]][1] &&
+                map[i][1][e[i][1]][1] == map[i][2][e[i][2]][1])
+                return map[i][0][e[i][0]][1];
+
+            // column
+            if (e[0][i] != -1 &&
+                e[1][i] != -1 &&
+                e[2][i] != -1 &&
+                map[0][i][e[0][i]][1] == map[1][i][e[1][i]][1] &&
+                map[1][i][e[1][i]][1] == map[2][i][e[2][i]][1])
+                return map[i][0][e[0][i]][1];
+
+            // ghotr
+            if (e[0][0] != -1 &&
+                e[1][1] != -1 &&
+                e[2][2] != -1 &&
+                map[0][0][e[0][0]][1] == map[1][1][e[1][1]][1] &&
+                map[1][1][e[1][1]][1] == map[2][2][e[2][2]][1])
+                return map[0][0][e[0][0]][1];
+            if (e[0][2] != -1 &&
+                e[1][1] != -1 &&
+                e[2][0] != -1 &&
+                map[0][2][e[0][2]][1] == map[1][1][e[1][1]][1] &&
+                map[1][1][e[1][1]][1] == map[2][0][e[2][0]][1])
+                return map[0][2][e[0][2]][1];
+        }
+    }
+
+//    // Equal
+//    for (int i = 0; i < 3; i++){
+//        for (int j = 0; j < 3; j++){
+//            if (e[i][j] == -1)
+//                return 'N';
+//            if (map[i][j][e[i][j]][1] != turn){
+//                if (map[i][j][e[i][j]][0] != 3)
+//                    return 'N';
+//            }
+//        }
+//    }
+
+    return 'N';
 }
 
 
-bool beadExists(string beads[2][6]){
-    int turnnum;
-    if (turn == 'B') turnnum = 0;
-    else turnnum = 1;
+bool beadExists(){
+    int turnnum = get_turnnum(turn);
 
     for (int i = 0; i < 6; i++){
         if (chosenbead == beads[turnnum][i])
@@ -43,17 +120,25 @@ bool beadExists(string beads[2][6]){
 }
 
 
-bool inputChecker(string map[3][3][3]){
-    if (turn == 'R')
-        cout << "";
+bool inputChecker(){
+    int turnnum = get_turnnum(turn);
+    if (turnnum == 0) turnnum =  1;
+    else turnnum = 0;
+
     for (int i = 0; i < 3; i++){
         if (map[x][y][i] == ""){
             if (i == 0)
                 return true;
-            if (turn == map[x][y][i-1][0])
+            if (turn == map[x][y][i-1][1])
                 return false;
-            if (int(chosenbead[1]) <= int(map[x][y][i-1][1]))
+            if (int(chosenbead[0]) <= int(map[x][y][i-1][0]))
                 return false;
+
+            for (int j = 0; j < 6; j++){
+                if (beads[turnnum][j] == map[x][y][i-1]) // unusable
+                    beads[turnnum][j] = "-" + beads[turnnum][j];
+            }
+
             return true;
         }
     }
@@ -61,22 +146,28 @@ bool inputChecker(string map[3][3][3]){
 }
 
 
-void input(string beads[2][6], string map[3][3][3]){ // output: 0:chosenbead , 1:x , 2:y
-    int turnnum;
+void input(){
+    int turnnum = get_turnnum(turn);
+    int turnnumrev;
+
+    if (turnnum == 0) turnnumrev = 1;
+    else turnnumrev = 0;
 
     cout << turn << "'s turn" << endl;
 
-    if (turn == 'B') turnnum = 0;
-    else turnnum = 1;
-
-    cout << "unused beads: ";
-    for (int i = 0; i < 6 && beads[turnnum][i] != ""; i++)
-        cout << beads[turnnum][i] << " , ";
+    cout << "usable beads: ";
+    for (int i = 0; i < 6 && beads[turnnum][i] != ""; i++) {
+        if (beads[turnnum][i][0] != '-') {
+            cout << beads[turnnum][i];
+            if (i != 5)
+                cout << " , ";
+        }
+    }
     cout << endl;
 
     cout << "Select a bead: ";
     cin >> chosenbead;
-    if (beadExists(beads)) {
+    if (beadExists()) {
         cout << "Enter x: ";
         cin >> x;
         cout << "Enter y: ";
@@ -85,30 +176,41 @@ void input(string beads[2][6], string map[3][3][3]){ // output: 0:chosenbead , 1
         x -= 1;
         y -= 1;
 
-        if (!(x <= 2 && x >= 0 && y <= 2 && y >= 0 && inputChecker(map))) {
-            cout << "Your chosen coordinates isn't true; try again!";// todo
-            input(beads, map);
+        if (!(x <= 2 && x >= 0 && y <= 2 && y >= 0 && inputChecker())) {
+            cout << "Your chosen coordinates isn't true; try again!" << endl; // todo
+            input();
             return;
+        }
+
+        // Checking whether the bead is in the map or not
+        for (int i = 0; i < 3; i++){
+            for (int j = 0; j < 3; j++){
+                for (int k = 0; k < 3; k++){
+                    if (map[i][j][k] == chosenbead){
+                        map[i][j][k] = "";
+                        if (k != 0) {
+                            for (int l = 0; l < 6; l++) {
+                                if (beads[turnnumrev][l] == map[i][j][k - 1]) {
+                                    beads[turnnumrev][l].erase(beads[turnnumrev][l].begin());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         if (turn == 'B') turn = 'R';
         else turn = 'B';
 
-        // todo: agar zire mohre dige raft az beads[][] kharej she
-
         return;
     }
     cout << "Your chosen bead does not exist; try again!";
-    input(beads, map);
+    input();
 }
 
 
 int main() {
-
-    string map[3][3][3];
-
-    string beads[2][6] = {{"B1", "B1", "B2", "B2", "B3", "B3"},
-                        {"R1", "R1", "R2", "R2", "R3", "R3"}};
 
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 3; j++){
@@ -118,11 +220,13 @@ int main() {
         }
     }
 
-    while (checkWin() != 'N') { // todo: ==
+    while (checkWin() == 'N') {
 
-        printMap(map);
+        printMap();
 
-        input(beads, map);
+        input();
+
+        cout << "__________________________________________________" << endl;
 
         for (int i = 0; i < 3; i++){
             if (map[x][y][i] == ""){
@@ -131,9 +235,14 @@ int main() {
             }
         }
 
-
-//        cout << "chosenbead: " << chosenbead << endl << "x: " << x << endl << "y: " << y;
     }
+
+    printMap();
+
+    if (checkWin() == 'E')
+        cout << "Nobody win!!!";
+    else
+        cout << "Player" << get_turnnum(checkWin())+1 << " win!!!";
 
     return 0;
 }
