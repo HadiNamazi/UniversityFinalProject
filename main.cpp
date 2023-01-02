@@ -41,9 +41,7 @@ void printMap(){
 }
 
 
-char checkWin(){ // B or R or E:equal or N:none
-
-    // todo: Equal
+char checkWin(){ // B or R or N:none
 
     int e[3][3];
 
@@ -91,18 +89,6 @@ char checkWin(){ // B or R or E:equal or N:none
                 return map[0][2][e[0][2]][1];
         }
     }
-
-//    // Equal
-//    for (int i = 0; i < 3; i++){
-//        for (int j = 0; j < 3; j++){
-//            if (e[i][j] == -1)
-//                return 'N';
-//            if (map[i][j][e[i][j]][1] != turn){
-//                if (map[i][j][e[i][j]][0] != 3)
-//                    return 'N';
-//            }
-//        }
-//    }
 
     return 'N';
 }
@@ -239,10 +225,7 @@ int main() {
 
     printMap();
 
-    if (checkWin() == 'E')
-        cout << "Nobody win!!!";
-    else
-        cout << "Player" << get_turnnum(checkWin())+1 << " win!!!";
+    cout << "Player" << get_turnnum(checkWin())+1 << " win!!!";
 
     return 0;
 }
