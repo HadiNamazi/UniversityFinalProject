@@ -1,13 +1,28 @@
 #include <iostream>
+#include <fstream>
+#include <limits>
+#include <vector>
 using namespace std;
 
 
 char turn = 'B'; // B or R
 string chosenbead;
 int x, y;
+int scoreline_p1;
+int scoreline_p2;
+bool r = false;
 string map[3][3][3];
 string beads[2][6] = {{"1B1", "1B2", "2B1", "2B2", "3B1", "3B2"},
                       {"1R1", "1R2", "2R1", "2R2", "3R1", "3R2"}};
+
+
+std::fstream& GotoLine(std::fstream& file, unsigned int num){
+    file.seekg(std::ios::beg);
+    for(int i=0; i < num - 1; ++i){
+        file.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    }
+    return file;
+}
 
 
 int get_turnnum(char turn){
@@ -163,7 +178,7 @@ void input(){
         y -= 1;
 
         if (!(x <= 2 && x >= 0 && y <= 2 && y >= 0 && inputChecker())) {
-            cout << "Your chosen coordinates isn't true; try again!" << endl; // todo
+            cout << "Your chosen coordinates isn't true; try again!" << endl;
             input();
             return;
         }
@@ -196,7 +211,126 @@ void input(){
 }
 
 
+bool playersExists(string p1, string p2){
+    string s;
+    string data = "";
+    int exists = 0;
+    int i = 0;
+    ifstream MyReadFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt");
+
+    while (getline (MyReadFile, s)) {
+        i++;
+        if (i%4 == 1 || i%4 == 2) {
+            if (s == p1 || s == p2)
+                exists++;
+            else exists = 0;
+            if (exists == 2) {
+                if (i%4 == 2){
+                    MyReadFile.close();
+                    if (s == p2) {
+                        scoreline_p2 = i + 2;
+                        scoreline_p1 = i + 1;
+                        r = false;
+                    }
+                    else {
+                        scoreline_p2 = i + 1;
+                        scoreline_p1 = i + 2;
+                        r = true;
+                    }
+                    return true;
+                }
+                else exists = 0;
+            }
+        }
+    }
+
+    MyReadFile.close();
+    return false;
+}
+
+
+void fileWork(){
+    string p1, p2;
+
+    cout << "Enter player1's name: ";
+    cin >> p1;
+    cout << "Enter player2's name: ";
+    cin >> p2;
+
+    if (!playersExists(p1, p2)){
+        ofstream MyFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt", std::ios_base::app | std::ios_base::out);
+        MyFile << p1 << "\n" << p2 << "\n" << "0" << "\n" << "0" << "\n";
+        MyFile.close();
+    }
+    else {
+        fstream MyReadFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt");
+        string p1score, p2score;
+
+        if (r) {
+            GotoLine(MyReadFile, scoreline_p1);
+            MyReadFile >> p2score;
+            GotoLine(MyReadFile, scoreline_p2);
+            MyReadFile >> p1score;
+        }
+        else {
+            GotoLine(MyReadFile, scoreline_p1);
+            MyReadFile >> p1score;
+            GotoLine(MyReadFile, scoreline_p2);
+            MyReadFile >> p2score;
+        }
+
+        if (stoi(p1score) >= stoi(p2score))
+            turn = 'B';
+        else turn = 'R';
+
+        MyReadFile.close();
+    }
+}
+
+
+void addScoreToFile(char player){
+    ifstream MyReadFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt");
+    string s;
+    int i = 0;
+    int scoreline;
+    vector<string> data_vector;
+
+    if (r) {
+        if (player == 'B')
+            scoreline = scoreline_p2;
+        else scoreline = scoreline_p1;
+    }
+    else {
+        if (player == 'B')
+            scoreline = scoreline_p1;
+        else scoreline = scoreline_p2;
+    }
+
+    while (getline(MyReadFile, s)) {
+        i++;
+        if (i == scoreline)
+            data_vector.push_back(to_string(stoi(s) + 1));
+        else data_vector.push_back(s);
+    }
+
+    MyReadFile.close();
+    ofstream MyFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt");
+
+    for (int j = 1; j <= i; j++)
+        MyFile << data_vector[j-1] << "\n";
+
+    MyFile.close();
+}
+
+
 int main() {
+
+//    fstream MyFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt");
+//    GotoLine(MyFile, 1);
+//    MyFile << "yo men!!!" << "\n";
+//    MyFile.close();
+
+
 
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 3; j++){
@@ -205,6 +339,9 @@ int main() {
             }
         }
     }
+
+    fileWork();
+    addScoreToFile('B');
 
     while (checkWin() == 'N') {
 
@@ -225,7 +362,14 @@ int main() {
 
     printMap();
 
-    cout << "Player" << get_turnnum(checkWin())+1 << " win!!!";
+    if (checkWin() == 'B'){
+        cout << "Player1 win!!!";
+        addScoreToFile('B');
+    }
+    else {
+        cout << "Player2 win!!!";
+        addScoreToFile('R');
+    }
 
     return 0;
 }
