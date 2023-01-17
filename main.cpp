@@ -67,6 +67,8 @@ char checkWin(){ // B or R or N:none
                     e[i][j] = k - 1;
                     break;
                 }
+                if (k == 2)
+                    e[i][j] = k;
             }
         }
     }
@@ -87,7 +89,7 @@ char checkWin(){ // B or R or N:none
                 e[2][i] != -1 &&
                 map[0][i][e[0][i]][1] == map[1][i][e[1][i]][1] &&
                 map[1][i][e[1][i]][1] == map[2][i][e[2][i]][1])
-                return map[i][0][e[0][i]][1];
+                return map[0][i][e[0][i]][1];
 
             // ghotr
             if (e[0][0] != -1 &&
@@ -216,11 +218,12 @@ bool playersExists(string p1, string p2){
     string data = "";
     int exists = 0;
     int i = 0;
-    ifstream MyReadFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt");
+    ifstream MyReadFile("data.txt");
 
     while (getline (MyReadFile, s)) {
         i++;
         if (i%4 == 1 || i%4 == 2) {
+            if (i%4 == 1) exists = 0;
             if (s == p1 || s == p2)
                 exists++;
             else exists = 0;
@@ -245,6 +248,14 @@ bool playersExists(string p1, string p2){
     }
 
     MyReadFile.close();
+    if (i == 0) {
+        scoreline_p1 = 3;
+        scoreline_p2 = 4;
+    }
+    else {
+        scoreline_p1 = i + 3;
+        scoreline_p2 = i + 4;
+    }
     return false;
 }
 
@@ -258,26 +269,18 @@ void fileWork(){
     cin >> p2;
 
     if (!playersExists(p1, p2)){
-        ofstream MyFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt", std::ios_base::app | std::ios_base::out);
+        ofstream MyFile("data.txt", std::ios_base::app | std::ios_base::out);
         MyFile << p1 << "\n" << p2 << "\n" << "0" << "\n" << "0" << "\n";
         MyFile.close();
     }
     else {
-        fstream MyReadFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt");
+        fstream MyReadFile("data.txt");
         string p1score, p2score;
 
-        if (r) {
-            GotoLine(MyReadFile, scoreline_p1);
-            MyReadFile >> p2score;
-            GotoLine(MyReadFile, scoreline_p2);
-            MyReadFile >> p1score;
-        }
-        else {
-            GotoLine(MyReadFile, scoreline_p1);
-            MyReadFile >> p1score;
-            GotoLine(MyReadFile, scoreline_p2);
-            MyReadFile >> p2score;
-        }
+        GotoLine(MyReadFile, scoreline_p1);
+        MyReadFile >> p1score;
+        GotoLine(MyReadFile, scoreline_p2);
+        MyReadFile >> p2score;
 
         if (stoi(p1score) >= stoi(p2score))
             turn = 'B';
@@ -289,22 +292,15 @@ void fileWork(){
 
 
 void addScoreToFile(char player){
-    ifstream MyReadFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt");
+    ifstream MyReadFile("data.txt");
     string s;
     int i = 0;
     int scoreline;
     vector<string> data_vector;
 
-    if (r) {
-        if (player == 'B')
-            scoreline = scoreline_p2;
-        else scoreline = scoreline_p1;
-    }
-    else {
-        if (player == 'B')
-            scoreline = scoreline_p1;
-        else scoreline = scoreline_p2;
-    }
+    if (player == 'B')
+        scoreline = scoreline_p1;
+    else scoreline = scoreline_p2;
 
     while (getline(MyReadFile, s)) {
         i++;
@@ -314,7 +310,7 @@ void addScoreToFile(char player){
     }
 
     MyReadFile.close();
-    ofstream MyFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt");
+    ofstream MyFile("data.txt");
 
     for (int j = 1; j <= i; j++)
         MyFile << data_vector[j-1] << "\n";
@@ -325,13 +321,6 @@ void addScoreToFile(char player){
 
 int main() {
 
-//    fstream MyFile("/home/hadi/Desktop/C++/FinalProjectXO/data.txt");
-//    GotoLine(MyFile, 1);
-//    MyFile << "yo men!!!" << "\n";
-//    MyFile.close();
-
-
-
     for (int i = 0; i < 3; i++){
         for (int j = 0; j < 3; j++){
             for (int k = 0; k < 3; k++){
@@ -341,7 +330,6 @@ int main() {
     }
 
     fileWork();
-    addScoreToFile('B');
 
     while (checkWin() == 'N') {
 
